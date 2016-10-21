@@ -1,0 +1,31 @@
+buildscript {
+
+    def kotlinVersion = '1.0.3'
+
+    ext.librariesVersions = [
+            kotlinReflect   : kotlinVersion,
+            kotlinStdlib    : kotlinVersion
+    ]
+
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    }
+}
+
+apply plugin: 'kotlin'
+
+sourceCompatibility = JavaVersion.VERSION_1_6
+targetCompatibility = JavaVersion.VERSION_1_6
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-reflect:${librariesVersions.kotlinReflect}"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:${librariesVersions.kotlinStdlib}"
+}
