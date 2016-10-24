@@ -4,9 +4,9 @@ import com.squareup.moshi.*
 import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.javaType
 
-internal class FieldMappingImpl<in T, out F>(
+internal class FieldMappingImpl<T : Any, F>(
         override val name: String, private val property: KProperty1<T, F>) :
-        FieldMapping {
+        FieldMapping<T, F> {
 
     private var jsonAdapter: JsonAdapter<F>? = null
     private val readValues = ThreadLocal<F?>()
