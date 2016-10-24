@@ -5,15 +5,17 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.javaType
 
 internal class FieldMappingImpl<T : Any, F>(
-        override val name: String, private val property: KProperty1<T, F>) :
+        override val name: String, private val property: KProperty1<T, F>,
+        private var jsonAdapter: JsonAdapter<F>? = null) :
         FieldMapping<T, F> {
 
-    private var jsonAdapter: JsonAdapter<F>? = null
     private val readValues = ThreadLocal<F?>()
     private val valueCanBeNull = property.returnType.isMarkedNullable
 
     fun acquireJsonAdapter(moshi: Moshi) {
-        jsonAdapter = moshi.adapter(property.returnType.javaType)
+        if (jsonAdapter == null) {
+            jsonAdapter = moshi.adapter(property.returnType.javaType)
+        }
     }
 
     @Throws(ValueCanNotBeNullException::class)

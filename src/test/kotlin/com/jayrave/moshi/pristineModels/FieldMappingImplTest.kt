@@ -4,6 +4,9 @@ import com.jayrave.moshi.pristineModels.testLib.StringSink
 import com.jayrave.moshi.pristineModels.testLib.jsonReaderFrom
 import com.jayrave.moshi.pristineModels.testLib.jsonString
 import com.jayrave.moshi.pristineModels.testLib.jsonWriterTo
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonReader
+import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -13,6 +16,8 @@ class FieldMappingImplTest {
 
     @Test
     fun valueIsRead() {
+        class ExampleModel(val int: Int)
+
         val fieldName = "int_field"
         val fieldValue = 5
         val fieldBinding = FieldMappingImpl(fieldName, ExampleModel::int)
@@ -25,6 +30,8 @@ class FieldMappingImplTest {
 
     @Test
     fun valueIsWritten() {
+        class ExampleModel(val int: Int)
+
         val fieldName = "int_field"
         val model = ExampleModel(5)
         val fieldBinding = FieldMappingImpl(fieldName, ExampleModel::int)
@@ -37,13 +44,15 @@ class FieldMappingImplTest {
 
 
     @Test(expected = IllegalStateException::class)
-    fun readWithoutAcquiringAdapterThrows() {
+    fun readWithoutAcquiringAdapterThrowsWhenNotUsingExplicitJsonAdapter() {
+        class ExampleModel(val int: Int)
         FieldMappingImpl("int_field", ExampleModel::int).read(jsonReaderFrom(jsonString(5)))
     }
 
 
     @Test(expected = IllegalStateException::class)
-    fun writeWithoutAcquiringAdapterThrows() {
+    fun writeWithoutAcquiringAdapterThrowsWhenNotUsingExplicitJsonAdapter() {
+        class ExampleModel(val int: Int)
         FieldMappingImpl("int_field", ExampleModel::int).write(
                 jsonWriterTo(StringSink.create()), ExampleModel(5)
         )
@@ -51,7 +60,49 @@ class FieldMappingImplTest {
 
 
     @Test
+    fun explicitlyPassedInJsonAdapterIsUsed() {
+        val trueInt = BooleanAsIntJsonAdapter.TRUE_INT
+        val falseInt = BooleanAsIntJsonAdapter.FALSE_INT
+        class ExampleModel(val boolean: Boolean)
+
+        val fieldBinding = FieldMappingImpl("b", ExampleModel::boolean, BooleanAsIntJsonAdapter())
+        fieldBinding.read(jsonReaderFrom(jsonString(trueInt)))
+        assertThat(fieldBinding.lastReadValueInCurrentThread()).isTrue()
+        fieldBinding.read(jsonReaderFrom(jsonString(falseInt)))
+        assertThat(fieldBinding.lastReadValueInCurrentThread()).isFalse()
+
+        val stringSink1 = StringSink.create()
+        fieldBinding.write(jsonWriterTo(stringSink1), ExampleModel(true))
+        assertThat(stringSink1.toString()).isEqualTo(jsonString(trueInt))
+
+        val stringSink2 = StringSink.create()
+        fieldBinding.write(jsonWriterTo(stringSink2), ExampleModel(false))
+        assertThat(stringSink2.toString()).isEqualTo(jsonString(falseInt))
+    }
+
+
+    @Test
+    fun explicitlyPassedInJsonAdapterIsNotOverwrittenEvenIfAcquiredAdapterIsCalled() {
+        val trueInt = BooleanAsIntJsonAdapter.TRUE_INT
+        class ExampleModel(val boolean: Boolean)
+
+        // Build binding with custom adapter & ask to acquire json adapter
+        val fieldBinding = FieldMappingImpl("b", ExampleModel::boolean, BooleanAsIntJsonAdapter())
+        fieldBinding.acquireJsonAdapter(Moshi.Builder().build())
+
+        fieldBinding.read(jsonReaderFrom(jsonString(trueInt)))
+        assertThat(fieldBinding.lastReadValueInCurrentThread()).isTrue()
+
+        val stringSink = StringSink.create()
+        fieldBinding.write(jsonWriterTo(stringSink), ExampleModel(true))
+        assertThat(stringSink.toString()).isEqualTo(jsonString(trueInt))
+    }
+
+
+    @Test
     fun readWorksInMultiThreadedScenarios() {
+        class ExampleModel(val int: Int)
+
         val fieldName = "int_field"
         val fieldBinding = FieldMappingImpl(fieldName, ExampleModel::int)
         fieldBinding.acquireJsonAdapter(Moshi.Builder().build())
@@ -96,6 +147,8 @@ class FieldMappingImplTest {
 
     @Test
     fun valueCanNotBeNullExceptionNotThrownForNullableType() {
+        class ExampleModelWithNullableType(val int: Int?)
+
         val fieldBinding = FieldMappingImpl("nullable_int_field", ExampleModelWithNullableType::int)
         fieldBinding.acquireJsonAdapter(Moshi.Builder().build())
 
@@ -110,6 +163,8 @@ class FieldMappingImplTest {
 
     @Test(expected = FieldMappingImpl.ValueCanNotBeNullException::class)
     fun valueCanNotBeNullExceptionIsThrownForNonNullTypeIfValueIsNull() {
+        class ExampleModel(val int: Int)
+
         val fieldBinding = FieldMappingImpl("int_field", ExampleModel::int)
         fieldBinding.acquireJsonAdapter(Moshi.Builder().build())
         fieldBinding.lastReadValueInCurrentThread()
@@ -118,6 +173,8 @@ class FieldMappingImplTest {
 
     @Test
     fun clearLastReadValueInCurrentThreadWorks() {
+        class ExampleModelWithNullableType(val int: Int?)
+
         val fieldBinding = FieldMappingImpl("nullable_int_field", ExampleModelWithNullableType::int)
         fieldBinding.acquireJsonAdapter(Moshi.Builder().build())
 
@@ -132,6 +189,26 @@ class FieldMappingImplTest {
 
 
 
-    private data class ExampleModel(val int: Int)
-    private data class ExampleModelWithNullableType(val int: Int?)
+    private class BooleanAsIntJsonAdapter : JsonAdapter<Boolean>() {
+        override fun fromJson(reader: JsonReader): Boolean {
+            return when (reader.nextInt()) {
+                TRUE_INT -> true
+                FALSE_INT -> false
+                else -> throw IllegalArgumentException()
+            }
+        }
+
+        override fun toJson(writer: JsonWriter, value: Boolean) {
+            when (value) {
+                true -> writer.value(TRUE_INT)
+                else -> writer.value(FALSE_INT)
+            }
+        }
+
+
+        companion object {
+            const val TRUE_INT = 1
+            const val FALSE_INT = 0
+        }
+    }
 }
