@@ -33,6 +33,7 @@ internal class FieldMappingImpl<T, F>(
         }
     }
 
+    fun clearLastReadValueInCurrentThread() = readValues.remove()
     fun read(reader: JsonReader) = readValues.set(acquiredAdapter().fromJson(reader))
     fun write(writer: JsonWriter, value: F) = acquiredAdapter().toJson(writer, value)
     private fun acquiredAdapter(): JsonAdapter<F> {

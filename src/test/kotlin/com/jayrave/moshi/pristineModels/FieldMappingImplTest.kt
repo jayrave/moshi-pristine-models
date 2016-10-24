@@ -94,9 +94,7 @@ class FieldMappingImplTest {
 
     @Test
     fun valueCanNotBeNullExceptionNotThrownForNullableType() {
-        data class ModelWithNullableType(val int: Int?)
-
-        val fieldBinding = FieldMappingImpl("nullable_int_field", ModelWithNullableType::int)
+        val fieldBinding = FieldMappingImpl("nullable_int_field", ExampleModelWithNullableType::int)
         fieldBinding.acquireJsonAdapter(Moshi.Builder().build())
 
         // Assert exception is not thrown when value is null
@@ -116,6 +114,22 @@ class FieldMappingImplTest {
     }
 
 
+    @Test
+    fun clearLastReadValueInCurrentThreadWorks() {
+        val fieldBinding = FieldMappingImpl("nullable_int_field", ExampleModelWithNullableType::int)
+        fieldBinding.acquireJsonAdapter(Moshi.Builder().build())
+
+        // Read & assert value was read
+        fieldBinding.read(jsonReaderFrom(jsonString(5)))
+        assertThat(fieldBinding.lastReadValueInCurrentThread()).isNotNull()
+
+        // Clear & assert value was cleared
+        fieldBinding.clearLastReadValueInCurrentThread()
+        assertThat(fieldBinding.lastReadValueInCurrentThread()).isNull()
+    }
+
+
 
     private data class ExampleModel(val int: Int)
+    private data class ExampleModelWithNullableType(val int: Int?)
 }
