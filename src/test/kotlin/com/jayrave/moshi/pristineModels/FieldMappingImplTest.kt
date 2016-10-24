@@ -26,13 +26,13 @@ class FieldMappingImplTest {
     @Test
     fun valueIsWritten() {
         val fieldName = "int_field"
-        val fieldValue = 5
+        val model = ExampleModel(5)
         val fieldBinding = FieldMappingImpl(fieldName, ExampleModel::int)
 
         val stringSink = StringSink.create()
         fieldBinding.acquireJsonAdapter(Moshi.Builder().build())
-        fieldBinding.write(jsonWriterTo(stringSink), fieldValue)
-        assertThat(stringSink.toString()).isEqualTo(jsonString(fieldValue))
+        fieldBinding.write(jsonWriterTo(stringSink), model)
+        assertThat(stringSink.toString()).isEqualTo(jsonString(model.int))
     }
 
 
@@ -44,7 +44,9 @@ class FieldMappingImplTest {
 
     @Test(expected = IllegalStateException::class)
     fun writeWithoutAcquiringAdapterThrows() {
-        FieldMappingImpl("int_field", ExampleModel::int).write(jsonWriterTo(StringSink.create()), 5)
+        FieldMappingImpl("int_field", ExampleModel::int).write(
+                jsonWriterTo(StringSink.create()), ExampleModel(5)
+        )
     }
 
 

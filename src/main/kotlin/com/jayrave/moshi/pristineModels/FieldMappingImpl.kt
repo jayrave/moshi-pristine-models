@@ -4,7 +4,7 @@ import com.squareup.moshi.*
 import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.javaType
 
-internal class FieldMappingImpl<T, F>(
+internal class FieldMappingImpl<in T, out F>(
         override val name: String, private val property: KProperty1<T, F>) :
         FieldMapping {
 
@@ -35,7 +35,7 @@ internal class FieldMappingImpl<T, F>(
 
     fun clearLastReadValueInCurrentThread() = readValues.remove()
     fun read(reader: JsonReader) = readValues.set(acquiredAdapter().fromJson(reader))
-    fun write(writer: JsonWriter, value: F) = acquiredAdapter().toJson(writer, value)
+    fun write(writer: JsonWriter, model: T) = acquiredAdapter().toJson(writer, property.get(model))
     private fun acquiredAdapter(): JsonAdapter<F> {
         return jsonAdapter ?: throw IllegalStateException(
                 "Adapter is still not acquired for property: $name"
