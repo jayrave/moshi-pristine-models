@@ -12,7 +12,15 @@ val DEFAULT_CHARSET = Charsets.UTF_8
 fun jsonString(vararg values: Pair<String, *>) = jsonObject(*values).toString()
 fun jsonString(number: Number) = JsonPrimitive(number).toString()
 
-fun jsonWriterTo(sink: BufferedSink): JsonWriter = JsonWriter.of(sink)
+fun jsonWriterTo(sink: BufferedSink, serializeNulls: Boolean = true): JsonWriter {
+    val writer = JsonWriter.of(sink)
+    if (serializeNulls) {
+        writer.serializeNulls = true
+    }
+
+    return writer
+}
+
 fun jsonReaderFrom(jsonString: String): JsonReader = JsonReader.of(
         Buffer().writeString(jsonString, DEFAULT_CHARSET)
 )
