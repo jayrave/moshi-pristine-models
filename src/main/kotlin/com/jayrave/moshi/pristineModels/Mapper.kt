@@ -15,14 +15,22 @@ abstract class Mapper<T : Any>(
     private val jsonAdapterBuilt = AtomicBoolean(false)
     private val fieldMappings = LinkedHashMap<String, FieldMappingImpl<T, *>>()
 
+    /**
+     * @param [property] this field corresponds to
+     * @param [name] of the JSON field. If `null`, name formatter is used to format
+     * property name into field name
+     * @param [jsonAdapter] to be used to map this field from/to JSON. If `null`, whatever
+     * [Moshi] provides is used
+     */
     fun <F> field(
-            property: KProperty1<T, F>, name: String = nameFormatter.format(property.name)):
+            property: KProperty1<T, F>, name: String = nameFormatter.format(property.name),
+            jsonAdapter: JsonAdapter<F>? = null):
             FieldMapping<T, F> {
 
         return when (jsonAdapterBuilt.get()) {
             true -> throw IllegalStateException("Trying to add a field mapping too late")
             else -> {
-                val fieldMapping = FieldMappingImpl(name, property)
+                val fieldMapping = FieldMappingImpl(name, property, jsonAdapter)
                 fieldMappings.put(name, fieldMapping)
                 fieldMapping
             }
