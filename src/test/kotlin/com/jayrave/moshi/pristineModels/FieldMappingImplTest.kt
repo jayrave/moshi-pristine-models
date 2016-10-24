@@ -19,7 +19,7 @@ class FieldMappingImplTest {
 
         fieldBinding.acquireJsonAdapter(Moshi.Builder().build())
         fieldBinding.read(jsonReaderFrom(jsonString(fieldValue)))
-        assertThat(fieldBinding.lastReadValue()).isEqualTo(fieldValue)
+        assertThat(fieldBinding.lastReadValueInCurrentThread()).isEqualTo(fieldValue)
     }
 
 
@@ -61,14 +61,20 @@ class FieldMappingImplTest {
             Thread {
                 // Read & assert value
                 fieldBinding.read(jsonReaderFrom(jsonString(threadSpecificFieldValue)))
-                assertThat(fieldBinding.lastReadValue()).isEqualTo(threadSpecificFieldValue)
+                assertThat(fieldBinding.lastReadValueInCurrentThread()).isEqualTo(
+                        threadSpecificFieldValue
+                )
 
                 // Count down & await on the other latch
                 latch1.countDown()
                 awaitOnLatch.await()
 
-                // Assert again & count down the second latch
-                assertThat(fieldBinding.lastReadValue()).isEqualTo(threadSpecificFieldValue)
+                // Assert again
+                assertThat(fieldBinding.lastReadValueInCurrentThread()).isEqualTo(
+                        threadSpecificFieldValue
+                )
+
+                // Count down the second latch
                 latch2.countDown()
             }.start()
         }
@@ -83,6 +89,30 @@ class FieldMappingImplTest {
 
         thread1Latch2.await()
         thread2Latch2.await()
+    }
+
+
+    @Test
+    fun valueCanNotBeNullExceptionNotThrownForNullableType() {
+        data class ModelWithNullableType(val int: Int?)
+
+        val fieldBinding = FieldMappingImpl("nullable_int_field", ModelWithNullableType::int)
+        fieldBinding.acquireJsonAdapter(Moshi.Builder().build())
+
+        // Assert exception is not thrown when value is null
+        assertThat(fieldBinding.lastReadValueInCurrentThread()).isNull()
+
+        // Assert exception is not thrown when value is non-null
+        fieldBinding.read(jsonReaderFrom(jsonString(5)))
+        assertThat(fieldBinding.lastReadValueInCurrentThread()).isEqualTo(5)
+    }
+
+
+    @Test(expected = FieldMappingImpl.ValueCanNotBeNullException::class)
+    fun valueCanNotBeNullExceptionIsThrownForNonNullTypeIfValueIsNull() {
+        val fieldBinding = FieldMappingImpl("int_field", ExampleModel::int)
+        fieldBinding.acquireJsonAdapter(Moshi.Builder().build())
+        fieldBinding.lastReadValueInCurrentThread()
     }
 
 

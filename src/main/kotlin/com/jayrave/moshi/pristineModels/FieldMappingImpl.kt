@@ -10,17 +10,28 @@ internal class FieldMappingImpl<T, F>(
 
     private var jsonAdapter: JsonAdapter<F>? = null
     private val readValues = ThreadLocal<F?>()
+    private val valueCanBeNull = property.returnType.isMarkedNullable
 
     fun acquireJsonAdapter(moshi: Moshi) {
         jsonAdapter = moshi.adapter(property.returnType.javaType)
     }
 
-    /**
-     * It seems that even if [F] is a non-null type, [lastReadValue] can happily return a
-     * `null` value & only when this value is assigned (or done something else with) by
-     * the calling code, a null pointer exception (from java.lang) is thrown
-     */
-    fun lastReadValue(): F = readValues.get() as F
+    @Throws(ValueCanNotBeNullException::class)
+    fun lastReadValueInCurrentThread(): F {
+        // It seems that even if [F] is a non-null type, this method will happily return a
+        // `null` value (they are no nullability checks I could see in the decompiled code.
+        // I guess because of erasure there isn't enough information). Therefore do a manual
+        // check & throw if required
+
+        val value = readValues.get() as F
+        return when (valueCanBeNull) {
+            true -> value
+            else -> when (value) {
+                null -> throw ValueCanNotBeNullException("$name can't be null")
+                else -> value
+            }
+        }
+    }
 
     fun read(reader: JsonReader) = readValues.set(acquiredAdapter().fromJson(reader))
     fun write(writer: JsonWriter, value: F) = acquiredAdapter().toJson(writer, value)
@@ -29,4 +40,10 @@ internal class FieldMappingImpl<T, F>(
                 "Adapter is still not acquired for property: $name"
         )
     }
+
+
+    /**
+     * Thrown when `null` seems to be the value for a non-null type
+     */
+    internal class ValueCanNotBeNullException(message: String) : RuntimeException(message)
 }
