@@ -1,6 +1,6 @@
 **NOTE: This library is still in beta!**
  
-#Moshi: Pristine Models [![Build Status](https://travis-ci.org/jayrave/moshi-pristine-models.svg?branch=master)](https://travis-ci.org/jayrave/moshi-pristine-models) 
+#Moshi: Pristine Models [![Build Status](https://travis-ci.org/jayrave/moshi-pristine-models.svg?branch=master)](https://travis-ci.org/jayrave/moshi-pristine-models) [ ![Download](https://api.bintray.com/packages/jayrave/kotlin/moshi-pristine-models/images/download.svg) ](https://bintray.com/jayrave/kotlin/moshi-pristine-models/_latestVersion) 
 This is an add-on to [Moshi](https://github.com/square/moshi) which allows
  - to programmatically define mapping between models & JSON
  - to keep your models pristine => free of annotations & only concerned about the business logic
@@ -39,10 +39,10 @@ Voila! Now `Moshi` knows how to map `User` to/from this JSON
 ```
 
 This raises some questions:
- - What if the models are written in `Java`
+ - What if the models are written in `Java`?
  - What if the models have private properties?
  
-Well, there is a way to handle those situtations too. Let us consider that the same `User` model we saw above is now written in `Java`. The mapping is a little bit more involved, but nevertheless possible
+Well, there is a way to handle those situations too (considering there are public getters & and a public constructor). Let us consider that the same `User` model we saw above is now written in `Java`. The mapping is a little bit more involved, but nevertheless possible
 ```java
 class User {
     private final String name;
@@ -82,3 +82,7 @@ class UserMapper : Mapper<User>() {
 ```
 
 What are you still waiting for? Go ahead & spread the joy :)
+
+
+##Check this out
+If you like keeping your models clean, you may be interested in checking out another library => [Falkon](https://github.com/jayrave/falkon) (Disclaimer: I am the author), which helps to keep your models free of database/ORM specific annotations. Like this library, Falkon also enables to programmatically define the mapping between models & database records 
