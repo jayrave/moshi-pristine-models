@@ -2,15 +2,14 @@
  
 #Moshi: Pristine Models [![Build Status](https://travis-ci.org/jayrave/moshi-pristine-models.svg?branch=master)](https://travis-ci.org/jayrave/moshi-pristine-models) 
 This is an add-on to [Moshi](https://github.com/square/moshi) which allows
- - to programmatically declare the mapping between models & JSON
+ - to programmatically define mapping between models & JSON
  - to keep your models pristine => free of annotations & only concerned about the business logic
   
-It is pretty easy to define the mappings! The following method is useful in case where the models are written in Kotlin
-```
-// Model
+It is pretty easy to define the mappings!
+```kotlin
 data class User(val name: String, val age: Int)
-
-// Mapping from/to JSON
+```
+```kotlin
 class UserMapper : Mapper<User>() {
     val name = field(User::name, "user_name")
     val age = field(User::age, "user_age")
@@ -19,10 +18,32 @@ class UserMapper : Mapper<User>() {
 }
 ```
 
-The following method is useful in case the models are written in Java or Kotlin (with private properties) 
- 
+Once the mappings have been defined, `Moshi` has to be taught about these
+```kotlin
+val factory = PristineModelsJsonAdapterFactory.Builder()
+        .add(User::class.java, UserMapper())
+        .build()
+        
+val moshi = Moshi.Builder()
+        .add(factory)
+        // anything else you wanna teach moshi about
+        .build()
 ```
-// Model
+
+Voila! Now `Moshi` knows how to map `User` to/from this JSON
+```javascript
+{
+    "user_name": "John Muir", 
+    "user_age": 76
+}
+```
+
+This raises some questions:
+ - What if the models are written in `Java`
+ - What if the models have private properties?
+ 
+Well, there is a way to handle those situtations too. Let us consider that the same `User` model we saw above is now written in `Java`. The mapping is a little bit more involved, but nevertheless possible
+```java
 class User {
     private final String name;
     private final int age;
@@ -42,8 +63,7 @@ class User {
 }
 
 ```
-```
-// Mapping from/to JSON
+```kotlin
 class UserMapper : Mapper<User>() {
     val name = field("user_field", false, object : PropertyExtractor<User, String> {
         override val type: Type = String::class.javaObjectType
@@ -61,24 +81,4 @@ class UserMapper : Mapper<User>() {
 }
 ```
 
-Both of the above mentioned way of defining the mapping can map the User model from/to this JSON
-```
-{
-    "user_name": "John Muir", 
-    "user_age": 76
-}
-```
-
-Once the mappings have been defined, `Moshi` has to be taught about these
-```
-val factory = PristineModelsJsonAdapterFactory.Builder()
-        .add(User::class.java, UserMapper())
-        .build()
-        
-val moshi = Moshi.Builder()
-        .add(factory)
-        // anything else you wanna teach moshi about
-        .build()
-```
-
-Voila! Now `Moshi` knows how to handle `User`
+What are you still waiting for? Go ahead & spread the joy :)
