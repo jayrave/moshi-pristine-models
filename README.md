@@ -81,8 +81,19 @@ class UserMapper : Mapper<User>() {
 }
 ```
 
-What are you still waiting for? Go ahead & spread the joy :)
+##Download
+```gradle
+// This is usually in the top-level build.gradle file
+allprojects {
+    repositories {
+        jcenter() // Since the JAR lives in Bintray's jCenter
+    }
+}
 
+dependencies {
+    compile "com.jayrave:moshi-pristine-models:$version"
+}
+```
 
 ##Check this out
 If you like keeping your models clean, you may be interested in checking out another library => [Falkon](https://github.com/jayrave/falkon) (Disclaimer: I am the author), which helps to keep your models free of database/ORM specific annotations. Like this library, Falkon also enables to programmatically define the mapping between models & database records 
