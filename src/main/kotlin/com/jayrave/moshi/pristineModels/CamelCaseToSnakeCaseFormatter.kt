@@ -9,7 +9,7 @@ package com.jayrave.moshi.pristineModels
  *      - intCounter1 to int_counter_1
  *
  */
-class CamelCaseToSnakeCaseFormatter : NameFormatter {
+object CamelCaseToSnakeCaseFormatter : NameFormatter {
 
     @Throws(NameFormatter.NameFormatException::class)
     override fun format(input: String): String {
