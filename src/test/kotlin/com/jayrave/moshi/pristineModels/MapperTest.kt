@@ -7,6 +7,7 @@ import com.jayrave.moshi.pristineModels.testLib.jsonWriterTo
 import com.squareup.moshi.Moshi
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import java.lang.reflect.Type
 
 class MapperTest {
 
@@ -106,6 +107,48 @@ class MapperTest {
         )
 
         assertThat(actualJsonString).isEqualTo(expectedJsonString)
+    }
+
+
+    @Test
+    fun canMapModelWithPrivateProperties() {
+        data class ExampleModel(private val int: Int, private val string: String?) {
+            fun extractIntValue(): Int = int
+            fun extractNullableStringValue(): String? = string
+        }
+
+        class ExampleModelMapper : Mapper<ExampleModel>() {
+            val int = field("int_field", false, object : PropertyExtractor<ExampleModel, Int> {
+                override val type: Type = Int::class.javaPrimitiveType!!
+                override fun extractFrom(t: ExampleModel): Int = t.extractIntValue()
+            })
+
+            val str = field("str_field", true, object : PropertyExtractor<ExampleModel, String?> {
+                override val type: Type = String::class.javaObjectType
+                override fun extractFrom(t: ExampleModel): String? = t.extractNullableStringValue()
+            })
+
+            override fun create(value: Value<ExampleModel>): ExampleModel {
+                return ExampleModel(value of int, value of str)
+            }
+        }
+
+        val mapper = ExampleModelMapper()
+        val exampleModel = ExampleModel(5, null)
+        val jsonAdapterFromMapper = mapper.buildJsonAdapter(Moshi.Builder().build())
+
+        // Check json from model
+        val stringSink = StringSink.create()
+        jsonAdapterFromMapper.toJson(jsonWriterTo(stringSink), exampleModel)
+        val actualJsonString = stringSink.toString()
+        assertThat(actualJsonString).isEqualTo(jsonString(
+                mapper.int.name to exampleModel.extractIntValue(),
+                mapper.str.name to exampleModel.extractNullableStringValue()
+        ))
+
+        // Check model from json
+        val builtModel = jsonAdapterFromMapper.fromJson(jsonReaderFrom(actualJsonString))
+        assertThat(builtModel).isEqualTo(exampleModel)
     }
 
 

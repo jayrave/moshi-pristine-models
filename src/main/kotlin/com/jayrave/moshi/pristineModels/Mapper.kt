@@ -6,31 +6,31 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.reflect.KProperty1
 
-abstract class Mapper<T : Any>(
-        private val nameFormatter: NameFormatter = CamelCaseToSnakeCaseFormatter()) {
+abstract class Mapper<T : Any> {
 
     private var jsonAdapter: JsonAdapter<T>? = null
     private val jsonAdapterBuilt = AtomicBoolean(false)
     private val fieldMappings = LinkedHashMap<String, FieldMappingImpl<T, *>>()
 
     /**
-     * @param [property] this field corresponds to
-     * @param [name] of the JSON field. If `null`, name formatter is used to format
-     * property name into field name
-     * @param [jsonAdapter] to be used to map this field from/to JSON. If `null`, whatever
+     * @param [name] of the JSON field
+     * @param [valueCanBeNull] whether this property & JSON can be null
+     * @param [propertyExtractor] to extract the property ([F]) from an instance of [T]
+     * @param [jsonAdapter] to be used to map this property from/to JSON. If `null`, whatever
      * [Moshi] provides is used
      */
     fun <F> field(
-            property: KProperty1<T, F>, name: String = nameFormatter.format(property.name),
-            jsonAdapter: JsonAdapter<F>? = null):
-            FieldMapping<T, F> {
+            name: String, valueCanBeNull: Boolean, propertyExtractor: PropertyExtractor<T, F>,
+            jsonAdapter: JsonAdapter<F>? = null): FieldMapping<T, F> {
 
         return when (jsonAdapterBuilt.get()) {
             true -> throw IllegalStateException("Trying to add a field mapping too late")
             else -> {
-                val fieldMapping = FieldMappingImpl(name, property, jsonAdapter)
+                val fieldMapping = FieldMappingImpl(
+                        name, valueCanBeNull, propertyExtractor, jsonAdapter
+                )
+
                 fieldMappings.put(name, fieldMapping)
                 fieldMapping
             }

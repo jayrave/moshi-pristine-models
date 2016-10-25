@@ -1,20 +1,21 @@
 package com.jayrave.moshi.pristineModels
 
-import com.squareup.moshi.*
-import kotlin.reflect.KProperty1
-import kotlin.reflect.jvm.javaType
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonReader
+import com.squareup.moshi.JsonWriter
+import com.squareup.moshi.Moshi
 
-internal class FieldMappingImpl<T : Any, F>(
-        override val name: String, private val property: KProperty1<T, F>,
+internal class FieldMappingImpl<in T : Any, out F>(
+        override val name: String, override val valueCanBeNull: Boolean,
+        override val propertyExtractor: PropertyExtractor<T, F>,
         private var jsonAdapter: JsonAdapter<F>? = null) :
         FieldMapping<T, F> {
 
     private val readValues = ThreadLocal<F?>()
-    private val valueCanBeNull = property.returnType.isMarkedNullable
 
     fun acquireJsonAdapter(moshi: Moshi) {
         if (jsonAdapter == null) {
-            jsonAdapter = moshi.adapter(property.returnType.javaType)
+            jsonAdapter = moshi.adapter(propertyExtractor.type)
         }
     }
 
@@ -37,7 +38,10 @@ internal class FieldMappingImpl<T : Any, F>(
 
     fun clearLastReadValueInCurrentThread() = readValues.remove()
     fun read(reader: JsonReader) = readValues.set(acquiredAdapter().fromJson(reader))
-    fun write(writer: JsonWriter, model: T) = acquiredAdapter().toJson(writer, property.get(model))
+    fun write(writer: JsonWriter, model: T) = acquiredAdapter().toJson(
+            writer, propertyExtractor.extractFrom(model)
+    )
+
     private fun acquiredAdapter(): JsonAdapter<F> {
         return jsonAdapter ?: throw IllegalStateException(
                 "Adapter is still not acquired for property: $name"
