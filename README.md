@@ -21,7 +21,7 @@ class UserMapper : Mapper<User>() {
 Once the mappings have been defined, `Moshi` has to be taught about these
 ```kotlin
 val factory = PristineModelsJsonAdapterFactory.Builder()
-        .add(User::class.java, UserMapper())
+        .add(User::class.java, UserMapper()) // there is an API to allow lazy initialization of mappers too
         .build()
         
 val moshi = Moshi.Builder()
