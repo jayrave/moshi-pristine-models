@@ -153,6 +153,43 @@ class MapperTest {
 
 
     @Test
+    fun fromJsonIsNullSafe() {
+        class ExampleModel(val int: Int)
+        class ExampleModelMapper : Mapper<ExampleModel>() {
+            val int = field(ExampleModel::int, "int_field")
+            override fun create(value: Value<ExampleModel>): ExampleModel {
+                return ExampleModel(value of int)
+            }
+        }
+
+        val builtModel = ExampleModelMapper()
+                .buildJsonAdapter(Moshi.Builder().build())
+                .fromJson("null")
+
+        assertThat(builtModel).isNull()
+    }
+
+
+    @Test
+    fun toJsonIsNullSafe() {
+        class ExampleModel(val int: Int)
+        class ExampleModelMapper : Mapper<ExampleModel>() {
+            val int = field(ExampleModel::int, "int_field")
+            override fun create(value: Value<ExampleModel>): ExampleModel {
+                return ExampleModel(value of int)
+            }
+        }
+
+        val stringSink = StringSink.create()
+        ExampleModelMapper()
+                .buildJsonAdapter(Moshi.Builder().build())
+                .toJson(jsonWriterTo(stringSink), null)
+
+        assertThat(stringSink.toString()).isEqualTo("null")
+    }
+
+
+    @Test
     fun defaultNameFormatterIsCamelCaseToSnakeCaseFormatter() {
         class ExampleModel(val test: Int, val test1: Int, val testTest: Int)
         class ExampleModelMapper : Mapper<ExampleModel>() {
