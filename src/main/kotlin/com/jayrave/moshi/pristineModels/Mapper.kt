@@ -45,7 +45,7 @@ abstract class Mapper<T : Any> {
             if (jsonAdapterBuilt.compareAndSet(false, true)) {
 
                 // Let all the field mappings acquire the adapter they need
-                fieldMappings.values.forEach { it.acquireJsonAdapter(moshi) }
+                fieldMappings.values.forEach { it.acquireJsonAdapterIfRequired(moshi) }
 
                 // Build the adapter this mapper needs (make it null safe too)
                 jsonAdapter = JsonAdapterForMapper().nullSafe()

@@ -13,7 +13,7 @@ internal class FieldMappingImpl<in T : Any, out F>(
 
     private val readValues = ThreadLocal<F?>()
 
-    fun acquireJsonAdapter(moshi: Moshi) {
+    fun acquireJsonAdapterIfRequired(moshi: Moshi) {
         if (jsonAdapter == null) {
             jsonAdapter = moshi.adapter(propertyExtractor.type)
         }

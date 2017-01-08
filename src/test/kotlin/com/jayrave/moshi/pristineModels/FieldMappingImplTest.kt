@@ -25,7 +25,7 @@ class FieldMappingImplTest {
         val fieldValue = 5
         val fieldMapping = buildFieldMapping(fieldName, ExampleModel::int)
 
-        fieldMapping.acquireJsonAdapter(Moshi.Builder().build())
+        fieldMapping.acquireJsonAdapterIfRequired(Moshi.Builder().build())
         fieldMapping.read(jsonReaderFrom(jsonString(fieldValue)))
         assertThat(fieldMapping.lastReadValueInCurrentThread()).isEqualTo(fieldValue)
     }
@@ -40,7 +40,7 @@ class FieldMappingImplTest {
         val fieldMapping = buildFieldMapping(fieldName, ExampleModel::int)
 
         val stringSink = StringSink.create()
-        fieldMapping.acquireJsonAdapter(Moshi.Builder().build())
+        fieldMapping.acquireJsonAdapterIfRequired(Moshi.Builder().build())
         fieldMapping.write(jsonWriterTo(stringSink), model)
         assertThat(stringSink.toString()).isEqualTo(jsonString(model.int))
     }
@@ -91,7 +91,7 @@ class FieldMappingImplTest {
 
         // Build binding with custom adapter & ask to acquire json adapter
         val fieldMapping = buildFieldMapping("b", ExampleModel::boolean, BooleanAsIntJsonAdapter())
-        fieldMapping.acquireJsonAdapter(Moshi.Builder().build())
+        fieldMapping.acquireJsonAdapterIfRequired(Moshi.Builder().build())
 
         fieldMapping.read(jsonReaderFrom(jsonString(trueInt)))
         assertThat(fieldMapping.lastReadValueInCurrentThread()).isTrue()
@@ -108,7 +108,7 @@ class FieldMappingImplTest {
 
         val fieldName = "int_field"
         val fieldMapping = buildFieldMapping(fieldName, ExampleModel::int)
-        fieldMapping.acquireJsonAdapter(Moshi.Builder().build())
+        fieldMapping.acquireJsonAdapterIfRequired(Moshi.Builder().build())
 
         fun runThread(
                 threadSpecificFieldValue: Int, latch1: CountDownLatch,
@@ -153,7 +153,7 @@ class FieldMappingImplTest {
         class ExampleModelWithNullableType(val int: Int?)
 
         val mapping = buildFieldMapping("nullable_int_field", ExampleModelWithNullableType::int)
-        mapping.acquireJsonAdapter(Moshi.Builder().build())
+        mapping.acquireJsonAdapterIfRequired(Moshi.Builder().build())
 
         // Assert exception is not thrown when value is null
         assertThat(mapping.lastReadValueInCurrentThread()).isNull()
@@ -169,7 +169,7 @@ class FieldMappingImplTest {
         class ExampleModel(val int: Int)
 
         val mapping = buildFieldMapping("int_field", ExampleModel::int)
-        mapping.acquireJsonAdapter(Moshi.Builder().build())
+        mapping.acquireJsonAdapterIfRequired(Moshi.Builder().build())
         mapping.lastReadValueInCurrentThread()
     }
 
@@ -179,7 +179,7 @@ class FieldMappingImplTest {
         class ExampleModelWithNullableType(val int: Int?)
 
         val mapping = buildFieldMapping("nullable_int_field", ExampleModelWithNullableType::int)
-        mapping.acquireJsonAdapter(Moshi.Builder().build())
+        mapping.acquireJsonAdapterIfRequired(Moshi.Builder().build())
 
         // Read & assert value was read
         mapping.read(jsonReaderFrom(jsonString(5)))
