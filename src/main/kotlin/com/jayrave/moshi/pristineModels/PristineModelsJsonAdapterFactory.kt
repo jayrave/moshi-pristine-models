@@ -17,8 +17,8 @@ class PristineModelsJsonAdapterFactory private constructor(
             type: Type, annotations: MutableSet<out Annotation>?, moshi: Moshi):
             JsonAdapter<*>? {
 
-        return mappersForModels[type]?.buildJsonAdapter(moshi) ?:
-                mapperCreatorsForModels[type]?.invoke()?.buildJsonAdapter(moshi)
+        return mappersForModels[type]?.getJsonAdapter(moshi) ?:
+                mapperCreatorsForModels[type]?.invoke()?.getJsonAdapter(moshi)
     }
 
 

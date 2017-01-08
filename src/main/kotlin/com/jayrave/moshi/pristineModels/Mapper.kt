@@ -38,7 +38,7 @@ abstract class Mapper<T : Any> {
     }
 
 
-    internal fun buildJsonAdapter(moshi: Moshi): JsonAdapter<T> {
+    internal fun getJsonAdapter(moshi: Moshi): JsonAdapter<T> {
         synchronized(jsonAdapterBuilt) { // Use flag to not have a separate lock object
 
             // Do the following only if it hasn't been already done

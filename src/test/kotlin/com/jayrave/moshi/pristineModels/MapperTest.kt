@@ -49,7 +49,7 @@ class MapperTest {
 
 
         val builtModel = mapper
-                .buildJsonAdapter(Moshi.Builder().build())
+                .getJsonAdapter(Moshi.Builder().build())
                 .fromJson(jsonReaderFrom(jsonString))
 
         assertThat(builtModel.int).isEqualTo(expectedIntValue)
@@ -95,7 +95,7 @@ class MapperTest {
 
         val stringSink = StringSink.create()
         mapper
-                .buildJsonAdapter(Moshi.Builder().build())
+                .getJsonAdapter(Moshi.Builder().build())
                 .toJson(jsonWriterTo(stringSink), exampleModel)
 
         val actualJsonString = stringSink.toString()
@@ -135,7 +135,7 @@ class MapperTest {
 
         val mapper = ExampleModelMapper()
         val exampleModel = ExampleModel(5, null)
-        val jsonAdapterFromMapper = mapper.buildJsonAdapter(Moshi.Builder().build())
+        val jsonAdapterFromMapper = mapper.getJsonAdapter(Moshi.Builder().build())
 
         // Check json from model
         val stringSink = StringSink.create()
@@ -163,7 +163,7 @@ class MapperTest {
         }
 
         val builtModel = ExampleModelMapper()
-                .buildJsonAdapter(Moshi.Builder().build())
+                .getJsonAdapter(Moshi.Builder().build())
                 .fromJson("null")
 
         assertThat(builtModel).isNull()
@@ -182,7 +182,7 @@ class MapperTest {
 
         val stringSink = StringSink.create()
         ExampleModelMapper()
-                .buildJsonAdapter(Moshi.Builder().build())
+                .getJsonAdapter(Moshi.Builder().build())
                 .toJson(jsonWriterTo(stringSink), null)
 
         assertThat(stringSink.toString()).isEqualTo("null")
@@ -223,7 +223,7 @@ class MapperTest {
 
         val mapper = ExampleModelMapper()
         val exampleModel = ExampleModel(5)
-        val jsonAdapterFromMapper = mapper.buildJsonAdapter(Moshi.Builder().build())
+        val jsonAdapterFromMapper = mapper.getJsonAdapter(Moshi.Builder().build())
 
         // Check json from model
         val stringSink = StringSink.create()
@@ -250,7 +250,7 @@ class MapperTest {
 
         // Build adapter
         val mapper = ExampleModelMapper()
-        mapper.buildJsonAdapter(Moshi.Builder().build())
+        mapper.getJsonAdapter(Moshi.Builder().build())
 
         // Try to add another field now
         mapper.field(ExampleModel::string)
@@ -277,7 +277,7 @@ class MapperTest {
         )
 
         val builtModel = mapper
-                .buildJsonAdapter(Moshi.Builder().build())
+                .getJsonAdapter(Moshi.Builder().build())
                 .fromJson(jsonReaderFrom(jsonString))
 
         assertThat(builtModel.int).isEqualTo(expectedIntValue)
@@ -296,7 +296,7 @@ class MapperTest {
         }
 
         val mapper = ExampleModelMapper()
-        val jsonAdapterFromMapper = mapper.buildJsonAdapter(Moshi.Builder().build())
+        val jsonAdapterFromMapper = mapper.getJsonAdapter(Moshi.Builder().build())
 
         val jsonString1 = jsonString(
                 mapper.int.name to 5,
