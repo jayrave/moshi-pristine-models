@@ -1,5 +1,5 @@
 buildscript {
-    def kotlinVersion = '1.0.3'
+    def kotlinVersion = '1.0.6'
     ext.kotlinVersion = kotlinVersion
 
     repositories {
