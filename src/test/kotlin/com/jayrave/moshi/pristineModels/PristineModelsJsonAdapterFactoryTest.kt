@@ -92,10 +92,17 @@ class PristineModelsJsonAdapterFactoryTest {
 
 
     companion object {
+        private val JSON_ADAPTER_FROM_MAPPER_TO_STRING_REGEX = Regex(
+                "com\\.jayrave\\.moshi\\.pristineModels\\.Mapper\\\$JsonAdapterForMapper@\\w+\\.nullSafe\\(\\)"
+        )
+
+        // TODO - This isn't a foolproof way to test this!
         private fun assertJsonAdapterIsFromMapperFor(moshi: Moshi, clazz: Class<*>) {
-            assertThat(moshi.adapter(clazz).javaClass.canonicalName).isEqualTo(
-                    "com.jayrave.moshi.pristineModels.Mapper.JsonAdapterForMapper"
+            val regexMatches = JSON_ADAPTER_FROM_MAPPER_TO_STRING_REGEX.matches(
+                    moshi.adapter(clazz).toString()
             )
+
+            assertThat(regexMatches).isTrue()
         }
     }
 }
