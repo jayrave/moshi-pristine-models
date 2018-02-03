@@ -55,7 +55,7 @@ ext {
     bintrayName = publishedArtifactId
 
     libraryName = 'Moshi Pristine Models'
-    libraryVersionName = '0.3-beta'
+    libraryVersionName = '1.0.0'
     libraryDescription = 'Moshi add-on to programmatically define mapping between models & JSON'
 
     siteUrl = 'https://github.com/jayrave/moshi-pristine-models'
