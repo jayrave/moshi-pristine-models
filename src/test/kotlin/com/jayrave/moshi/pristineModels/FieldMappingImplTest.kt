@@ -18,6 +18,36 @@ import kotlin.reflect.jvm.javaType
 class FieldMappingImplTest {
 
     @Test
+    fun existingJsonAdapterOrAcquireFromReturnsExistingAdapter() {
+        class ExampleModel(@Suppress("unused") val boolean: Boolean)
+        val fieldMapping = buildFieldMapping("boolean_field", ExampleModel::boolean)
+
+        // Make the mapping acquire json adapter
+        fieldMapping.acquireJsonAdapterIfRequired(Moshi.Builder().add({ type, _, _ -> when (type) {
+            Boolean::class.javaPrimitiveType -> BooleanAsIntJsonAdapter()
+            else -> null
+        } }).build())
+
+        val actualAdapter = fieldMapping.existingJsonAdapterOrAcquireFrom(Moshi.Builder().build())
+        assertThat(actualAdapter).isInstanceOf(BooleanAsIntJsonAdapter::class.java)
+    }
+
+
+    @Test
+    fun existingJsonAdapterOrAcquireFromAcquiresInCaseAdapterDoesNotExistAlready() {
+        class ExampleModel(@Suppress("unused") val boolean: Boolean)
+        val fieldMapping = buildFieldMapping("boolean_field", ExampleModel::boolean)
+        val moshi = Moshi.Builder().add({ type, _, _ -> when (type) {
+            Boolean::class.javaPrimitiveType -> BooleanAsIntJsonAdapter()
+            else -> null
+        } }).build()
+
+        val actualAdapter = fieldMapping.existingJsonAdapterOrAcquireFrom(moshi)
+        assertThat(actualAdapter).isInstanceOf(BooleanAsIntJsonAdapter::class.java)
+    }
+
+
+    @Test
     fun valueIsRead() {
         class ExampleModel(val int: Int)
 
