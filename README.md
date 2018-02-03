@@ -1,6 +1,4 @@
-**NOTE: This library is still in beta!**
- 
-#Moshi: Pristine Models [![Build Status](https://travis-ci.org/jayrave/moshi-pristine-models.svg?branch=master)](https://travis-ci.org/jayrave/moshi-pristine-models) [ ![Download](https://api.bintray.com/packages/jayrave/kotlin/moshi-pristine-models/images/download.svg) ](https://bintray.com/jayrave/kotlin/moshi-pristine-models/_latestVersion) 
+# Moshi: Pristine Models [![Build Status](https://travis-ci.org/jayrave/moshi-pristine-models.svg?branch=master)](https://travis-ci.org/jayrave/moshi-pristine-models) [ ![Download](https://api.bintray.com/packages/jayrave/kotlin/moshi-pristine-models/images/download.svg) ](https://bintray.com/jayrave/kotlin/moshi-pristine-models/_latestVersion) 
 This is an add-on to [Moshi](https://github.com/square/moshi) which allows
  - to programmatically define mapping between models & JSON
  - to keep your models pristine => free of annotations & only concerned about the business logic
@@ -81,7 +79,7 @@ class UserMapper : Mapper<User>() {
 }
 ```
 
-##Download
+## Download
 ```gradle
 // This is usually in the top-level build.gradle file
 allprojects {
@@ -95,5 +93,5 @@ dependencies {
 }
 ```
 
-##Check this out
+## Check this out
 If you like keeping your models clean, you may be interested in checking out another library => [Falkon](https://github.com/jayrave/falkon) (Disclaimer: I am the author), which helps to keep your models free of database/ORM specific annotations. Like this library, Falkon also enables to programmatically define the mapping between models & database records 
