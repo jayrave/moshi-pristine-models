@@ -31,3 +31,7 @@ class StringSink private constructor(private val buffer: Buffer) : BufferedSink 
         fun create() = StringSink(Buffer())
     }
 }
+
+fun String.readFileContent(): String? {
+    return String.javaClass.classLoader.getResourceAsStream(this)?.bufferedReader().use { it?.readText() }
+}
