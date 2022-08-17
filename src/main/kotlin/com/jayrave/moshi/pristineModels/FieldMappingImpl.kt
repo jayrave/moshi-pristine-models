@@ -11,8 +11,6 @@ internal class FieldMappingImpl<in T : Any, F>(
         private var jsonAdapter: JsonAdapter<F>? = null) :
         FieldMapping<T, F> {
 
-    private val readValues = ThreadLocal<F?>()
-
     override fun existingJsonAdapterOrAcquireFrom(moshi: Moshi): JsonAdapter<F> {
         return jsonAdapter ?: moshi.adapter(propertyExtractor.type)
     }
@@ -24,29 +22,7 @@ internal class FieldMappingImpl<in T : Any, F>(
         }
     }
 
-
-    @Throws(ValueCanNotBeNullException::class)
-    fun lastReadValueInCurrentThread(): F {
-        // It seems that even if [F] is a non-null type, this method will happily return a
-        // `null` value (they are no nullability checks I could see in the decompiled code.
-        // I guess because of erasure there isn't enough information). Therefore do a manual
-        // check & throw if required
-
-        val value = readValues.get()
-
-        @Suppress("UNCHECKED_CAST")
-        return when (valueCanBeNull) {
-            true -> value as F
-            else -> when (value) {
-                null -> throw ValueCanNotBeNullException("$name can't be null")
-                else -> value
-            }
-        }
-    }
-
-
-    fun clearLastReadValueInCurrentThread() = readValues.remove()
-    fun read(reader: JsonReader) = readValues.set(acquiredAdapter().fromJson(reader))
+    fun read(reader: JsonReader): F = acquiredAdapter().fromJson(reader) //readValues.set(acquiredAdapter().fromJson(reader))
     fun write(writer: JsonWriter, model: T) = acquiredAdapter().toJson(
             writer, propertyExtractor.extractFrom(model)
     )

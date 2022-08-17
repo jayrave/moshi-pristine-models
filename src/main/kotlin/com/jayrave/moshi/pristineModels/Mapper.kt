@@ -67,8 +67,7 @@ abstract class Mapper<T : Any> {
     private inner class JsonAdapterForMapper : JsonAdapter<T>() {
         override fun fromJson(reader: JsonReader): T {
 
-            // Clear cached values in field mappings
-            fieldMappings.values.forEach { it.clearLastReadValueInCurrentThread() }
+            val mapValues = hashMapOf<String, Any?>()
 
             // Start object
             reader.beginObject()
@@ -76,10 +75,9 @@ abstract class Mapper<T : Any> {
             // Extract all the possible field values
             while (reader.hasNext()) {
                 val fieldName = reader.nextName()
-                val fieldMapping = fieldMappings[fieldName]
-                when (fieldMapping) {
+                when (val fieldMapping = fieldMappings[fieldName]) {
                     null -> reader.skipValue()
-                    else -> fieldMapping.read(reader)
+                    else -> mapValues[fieldName] = fieldMapping.read(reader)
                 }
             }
 
@@ -90,7 +88,7 @@ abstract class Mapper<T : Any> {
             return create(object : Value<T> {
                 override fun <F> of(fieldMapping: FieldMapping<T, F>): F {
                     return when (fieldMapping) {
-                        is FieldMappingImpl -> fieldMapping.lastReadValueInCurrentThread()
+                        is FieldMappingImpl -> mapValues[fieldMapping.name] as F
                         else -> throw IllegalArgumentException(
                                 "Pass in ${FieldMapping::class.java.canonicalName} " +
                                         "built by calling Mapper#field"
