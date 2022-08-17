@@ -22,7 +22,7 @@ internal class FieldMappingImpl<in T : Any, F>(
         }
     }
 
-    fun read(reader: JsonReader): F = acquiredAdapter().fromJson(reader) //readValues.set(acquiredAdapter().fromJson(reader))
+    fun read(reader: JsonReader): F = acquiredAdapter().fromJson(reader)
     fun write(writer: JsonWriter, model: T) = acquiredAdapter().toJson(
             writer, propertyExtractor.extractFrom(model)
     )
