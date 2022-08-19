@@ -1,6 +1,7 @@
 package com.jayrave.moshi.pristineModels
 
 import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
@@ -88,7 +89,14 @@ abstract class Mapper<T : Any> {
             return create(object : Value<T> {
                 override fun <F> of(fieldMapping: FieldMapping<T, F>): F {
                     return when (fieldMapping) {
-                        is FieldMappingImpl -> mapValues[fieldMapping.name] as F
+                        is FieldMappingImpl -> {
+                            val value = mapValues[fieldMapping.name]
+                            if (value == null && !fieldMapping.valueCanBeNull) {
+                                throw JsonDataException("Non null property ${fieldMapping.name} cannot have null value")
+                            } else {
+                                value as F
+                            }
+                        }
                         else -> throw IllegalArgumentException(
                                 "Pass in ${FieldMapping::class.java.canonicalName} " +
                                         "built by calling Mapper#field"

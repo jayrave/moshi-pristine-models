@@ -1,10 +1,10 @@
 package com.jayrave.moshi.pristineModels
 
-import com.jayrave.moshi.pristineModels.testLib.StringSink
-import com.jayrave.moshi.pristineModels.testLib.jsonReaderFrom
-import com.jayrave.moshi.pristineModels.testLib.jsonString
-import com.jayrave.moshi.pristineModels.testLib.jsonWriterTo
+import com.jayrave.moshi.pristineModels.testLib.*
+import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.lang.reflect.Type
@@ -283,6 +283,24 @@ class MapperTest {
         assertThat(builtModel.int).isEqualTo(expectedIntValue)
     }
 
+    @Test(expected = JsonDataException::class)
+    fun valueCanNotBeNullExceptionIsThrownForNonNullTypeIfValueIsNull() {
+        class ExampleModel(val int: Int, val nullable_string: String)
+        class ExampleModelMapper : Mapper<ExampleModel>() {
+            val int = field(ExampleModel::int, "int_field")
+            val nullable_string = field(ExampleModel::nullable_string, "nullable_string_field")
+            override fun create(value: Value<ExampleModel>): ExampleModel {
+                return ExampleModel(value of int, value of nullable_string)
+            }
+        }
+        val mapper = ExampleModelMapper()
+        val jsonAdapterFromMapper = mapper.getJsonAdapter(Moshi.Builder().build())
+        val jsonString = jsonString(
+            mapper.int.name to 1,
+            mapper.nullable_string.name to null
+        )
+        jsonAdapterFromMapper.fromJson(jsonString)
+    }
 
     @Test
     fun lastReadValuesAreClearedForFieldMappingsBeforeBuildingModelFromJson() {
@@ -315,5 +333,64 @@ class MapperTest {
         val builtModel2 = jsonAdapterFromMapper.fromJson(jsonReaderFrom(jsonString2))
         assertThat(builtModel2.int).isEqualTo(6)
         assertThat(builtModel2.nullable_string).isNull()
+    }
+
+    @Test
+    fun parseNestedJson() {
+
+        val jsonString = "users.json".readFileContent() ?: return Assertions.fail("users.json file not found")
+
+        class Person(val name: String, val age: Int, val children: List<Person>?)
+
+        class PersonMapper : Mapper<Person>() {
+            val name = field(Person::name)
+            val age = field(Person::age)
+
+            val children = field(
+                name = "children",
+                valueCanBeNull = true,
+                propertyExtractor = object : PropertyExtractor<Person, List<Person>?> {
+                    override val type: Type
+                        get() = Types.newParameterizedType(List::class.java, Person::class.java)
+
+                    override fun extractFrom(t: Person): List<Person>? {
+                        return t.children
+                    }
+                }
+            )
+
+            override fun create(value: Value<Person>): Person = Person(
+                name = value of name,
+                age = value of age,
+                children = value of children
+            )
+        }
+
+        val moshi = Moshi.Builder()
+            .add(
+                PristineModelsJsonAdapterFactory
+                    .Builder()
+                    .add(Person::class.java) { PersonMapper() }
+                    .build()
+            )
+            .build()
+
+        val personModel = moshi.adapter(Person::class.java).fromJson(jsonString)!!
+
+        assert(personModel.name, "parent")
+        assert(personModel.age, 25)
+        assert(personModel.children!![0].name, "child 1")
+        assert(personModel.children[0].age, 3)
+        assert(personModel.children[1].name, "child 2")
+        assert(personModel.children[1].age, 1)
+    }
+
+    private fun <T> assert(actual: T, expected: T) {
+        kotlin.assert(actual == expected) {
+            """
+                Expected value: $expected
+                Actual value: $actual
+            """
+        }
     }
 }

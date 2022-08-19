@@ -22,7 +22,9 @@ fun <T : Any, F> Mapper<T>.field(
     }
 
     return field(
-            name = name, valueCanBeNull = property.returnType.isMarkedNullable,
-            propertyExtractor = propertyExtractor, jsonAdapter = jsonAdapter
+            name = name,
+            valueCanBeNull = property.returnType.isMarkedNullable,
+            propertyExtractor = propertyExtractor,
+            jsonAdapter = jsonAdapter
     )
 }

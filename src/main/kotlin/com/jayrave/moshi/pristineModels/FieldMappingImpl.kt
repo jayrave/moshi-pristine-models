@@ -33,11 +33,4 @@ internal class FieldMappingImpl<in T : Any, F>(
                 "Adapter is still not acquired for property: $name"
         )
     }
-
-
-
-    /**
-     * Thrown when `null` seems to be the value for a non-null type
-     */
-    internal class ValueCanNotBeNullException(message: String) : RuntimeException(message)
 }
